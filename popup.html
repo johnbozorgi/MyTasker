@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Dashboard</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Variables for Dynamic Branding */
+        :root {
+            --color-brand-500: 99 102 241; /* Default Indigo */
+            --color-brand-600: 79 70 229;
+        }
+
+        body {
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        
+        .glass-effect {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* --- LIGHT MODE OVERRIDES --- */
+        body.light-mode {
+            background-color: #f1f5f9; /* Slate 100 */
+            color: #334155; /* Slate 700 */
+        }
+        body.light-mode ::-webkit-scrollbar-track { background: #e2e8f0; }
+        body.light-mode ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+        
+        body.light-mode .glass-effect {
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        body.light-mode .bg-dark-900 { background-color: #f1f5f9 !important; }
+        body.light-mode .bg-dark-800 { background-color: #ffffff !important; border-color: #e2e8f0 !important; }
+        body.light-mode .bg-dark-700 { background-color: #f8fafc !important; }
+        body.light-mode .border-dark-700 { border-color: #e2e8f0 !important; }
+        body.light-mode .border-dark-600 { border-color: #cbd5e1 !important; }
+        body.light-mode .border-white\/5 { border-color: rgba(0,0,0,0.05) !important; }
+        body.light-mode .text-white { color: #0f172a !important; }
+        body.light-mode .text-slate-200 { color: #334155 !important; }
+        body.light-mode .text-slate-300 { color: #475569 !important; }
+        body.light-mode .text-slate-400 { color: #64748b !important; }
+        body.light-mode .text-slate-500 { color: #94a3b8 !important; }
+        
+        /* Inputs in Light Mode */
+        body.light-mode input, 
+        body.light-mode textarea {
+            background-color: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        body.light-mode input::placeholder,
+        body.light-mode textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+        body.light-mode input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            filter: none !important;
+        }
+
+        /* Animation for Panels */
+        .fade-in-down {
+            animation: fadeInDown 0.2s ease-out forwards;
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+            cursor: pointer;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-left-color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        body.light-mode .spinner {
+            border: 3px solid rgba(0,0,0,0.1);
+            border-left-color: var(--color-brand-600);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Tab Transition */
+        .tab-content {
+            transition: opacity 0.2s ease-in-out;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#0f172a', // Slate 900
+                            800: '#1e293b', // Slate 800
+                            700: '#334155', // Slate 700
+                        },
+                        brand: {
+                            500: 'rgb(var(--color-brand-500) / <alpha-value>)',
+                            600: 'rgb(var(--color-brand-600) / <alpha-value>)',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark-900 text-slate-200 font-sans flex flex-col">
+
+    <!-- Header -->
+    <header class="glass-effect fixed top-0 w-full z-40 px-6 py-4 flex justify-between items-center shadow-md">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 transition-colors duration-300">
+                <i class="fa-solid fa-layer-group text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-white tracking-wide leading-none">MyTasker</h1>
+                <span class="text-xs text-slate-400 font-medium">Dashboard</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 relative">
+            <button id="btn-notifications" class="w-10 h-10 rounded-full bg-dark-800 hover:bg-dark-700 text-slate-400 hover:text-white transition-colors flex items-center justify-center relative">
+                <i class="fa-regular fa-bell"></i>
+                <span id="notif-badge" class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-dark-900 hidden"></span>
+            </button>
+            <div id="panel-notifications" class="hidden absolute top-12 right-0 w-80 bg-dark-800 border border-dark-700 rounded-xl shadow-2xl z-50 overflow-hidden fade-in-down">
+                <div class="p-4 border-b border-dark-700 flex justify-between items-center">
+                    <h4 class="font-semibold text-white text-sm">Notifications</h4>
+                    <button class="text-xs text-brand-500 hover:text-white">Mark all read</button>
+                </div>
+                <div class="max-h-64 overflow-y-auto">
+                    <div id="notif-list" class="p-4 text-center text-xs text-slate-500">No new notifications</div>
+                </div>
+            </div>
+            <button id="btn-settings" class="w-10 h-10 rounded-full bg-dark-800 hover:bg-dark-700 text-slate-400 hover:text-white transition-colors flex items-center justify-center">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button id="btn-theme" class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-white/10 ml-2 border-2 border-dark-900 cursor-pointer shadow-lg shadow-brand-500/50 transition-transform active:scale-95 hover:scale-105" title="Change Theme Color"></button>
+            <div id="header-profile" class="w-10 h-10 rounded-full bg-dark-800 ml-2 border-2 border-dark-700 flex items-center justify-center text-slate-400 overflow-hidden cursor-pointer" title="Not Logged In">
+                <i class="fa-solid fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm fade-in">
+        <div class="bg-dark-800 w-full max-w-sm rounded-2xl shadow-2xl border border-dark-700 p-6 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white">Settings</h3>
+                <button id="btn-close-settings" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center p-3 bg-dark-900 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-moon text-brand-500"></i>
+                        <span class="text-sm font-medium text-slate-200">Dark Mode</span>
+                    </div>
+                    <div id="btn-dark-mode" class="w-10 h-5 bg-brand-500 rounded-full relative cursor-pointer transition-colors duration-300">
+                        <div id="circle-dark-mode" class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform duration-300 translate-x-5"></div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-dark-900 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <i id="icon-dnd" class="fa-solid fa-bell-slash text-slate-400 transition-colors"></i>
+                        <span class="text-sm font-medium text-slate-200">Do Not Disturb</span>
+                    </div>
+                    <div id="btn-dnd" class="w-10 h-5 bg-dark-700 rounded-full relative cursor-pointer transition-colors duration-300">
+                        <div id="circle-dnd" class="absolute left-1 top-1 w-3 h-3 bg-slate-400 rounded-full transition-transform duration-300"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-dark-700 text-center">
+                <p class="text-xs text-slate-500">Version 1.2.4 • MyTasker</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="main-top" class="flex-1 mt-[80px] mb-[100px] w-full max-w-7xl mx-auto px-6 overflow-y-auto pb-4 transition-colors duration-300">
+        
+        <!-- Top Section: Date & Weather -->
+        <div class="flex flex-col md:flex-row justify-between items-end md:items-center mb-8 mt-4 border-b border-white/5 pb-6">
+            <div class="mb-4 md:mb-0">
+                <p id="current-date" class="text-sm text-brand-500 font-semibold uppercase tracking-wider mb-1">Loading...</p>
+                <h2 id="current-time" class="text-5xl md:text-6xl font-bold text-white tracking-tight">--:--</h2>
+            </div>
+            <div class="flex gap-4">
+                 <div class="text-right px-4 py-2 bg-dark-800 rounded-xl border border-dark-700 flex items-center gap-3">
+                    <i class="fa-solid fa-cloud-sun text-yellow-500 text-2xl"></i>
+                    <div>
+                        <span class="block text-xl font-bold text-white">24°C</span>
+                        <span class="text-xs text-slate-400">Sunny, Tehran</span>
+                    </div>
+                 </div>
+            </div>
+        </div>
+
+        <!-- Quick Access -->
+        <div class="mb-8">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-star text-brand-500"></i> Quick Access
+            </h3>
+            <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4">
+                <div class="relative group aspect-square">
+                    <button id="btn-sync-google" class="w-full h-full bg-dark-800 hover:bg-dark-700 rounded-2xl border border-brand-500/30 hover:border-brand-500 flex flex-col items-center justify-center gap-3 transition-all shadow-sm hover:shadow-brand-500/20 hover:-translate-y-1">
+                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-lg shadow-sm group-hover:scale-110 transition-transform relative">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png" alt="G" class="w-6 h-6">
+                            <div class="absolute -bottom-1 -right-1 bg-brand-500 rounded-full w-4 h-4 flex items-center justify-center border border-white">
+                                <i class="fa-solid fa-arrows-rotate text-[8px] text-white"></i>
+                            </div>
+                        </div>
+                        <span class="text-xs text-brand-400 font-medium truncate w-full text-center px-1">Sync Google</span>
+                    </button>
+                </div>
+                <div class="relative group aspect-square">
+                    <a href="https://github.com" target="_blank" class="w-full h-full bg-dark-800 hover:bg-dark-700 rounded-2xl border border-dark-700 hover:border-brand-500/50 flex flex-col items-center justify-center gap-3 transition-all shadow-sm hover:shadow-brand-500/20 hover:-translate-y-1 block">
+                        <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-lg shadow-sm group-hover:scale-110 transition-transform text-white">
+                            <i class="fa-brands fa-github text-2xl"></i>
+                        </div>
+                        <span class="text-xs text-slate-300 font-medium truncate w-full text-center px-1">GitHub</span>
+                    </a>
+                </div>
+                 <button class="aspect-square bg-dark-800/30 hover:bg-dark-800 rounded-2xl border border-dashed border-dark-600 hover:border-brand-500 flex flex-col items-center justify-center gap-3 transition-all text-slate-500 hover:text-brand-500 group">
+                    <i class="fa-solid fa-plus text-2xl group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-medium">Add</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ROW 1: Calendar (40%) & Timer (60%) -->
+        <div class="flex flex-col md:flex-row gap-6 mb-8">
+            
+            <!-- Calendar (40%) -->
+            <div id="section-calendar" class="md:w-2/5 h-[200px] flex flex-col">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-regular fa-calendar-check text-brand-500"></i> Up Next
+                    </h3>
+                </div>
+                <div class="relative bg-gradient-to-r from-brand-600 to-indigo-600 p-[1px] rounded-2xl shadow-xl overflow-hidden group flex-1">
+                    <div id="calendar-login-state" class="absolute inset-0 bg-dark-900/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-center p-4">
+                        <div class="w-10 h-10 bg-dark-800 rounded-full flex items-center justify-center mb-2 shadow-lg border border-white/5">
+                            <i class="fa-brands fa-google text-lg text-white"></i>
+                        </div>
+                        <h4 class="text-white font-semibold mb-0.5 text-sm">Connect Calendar</h4>
+                        <button id="btn-connect-calendar" class="bg-white text-dark-900 px-4 py-1.5 rounded-full font-medium text-[10px] hover:bg-slate-200 transition-colors flex items-center gap-2 mt-2">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png" alt="G" class="w-3 h-3">
+                            Sign in
+                        </button>
+                    </div>
+                    <div id="calendar-content" class="bg-dark-800 rounded-[15px] p-4 relative z-10 h-full filter blur-sm transition-all duration-500 flex items-center">
+                        <div class="flex items-center gap-4 w-full">
+                            <div class="text-center min-w-[50px] border-r border-slate-700 pr-3">
+                                <span class="block text-lg font-bold text-white">14:00</span>
+                                <span class="text-[10px] text-slate-400">Today</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-semibold text-white truncate">Product Design Review</h4>
+                                <div class="flex gap-2 mt-1.5">
+                                    <button class="bg-brand-600 hover:bg-brand-700 text-white px-2.5 py-1 rounded-md transition-colors flex items-center gap-1.5 text-[10px]">
+                                        <i class="fa-solid fa-video"></i> Join
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Focus Timer (60%) -->
+            <div id="section-activity" class="md:w-3/5 h-[200px] flex flex-col">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-brand-500"></i> Timer
+                    </h3>
+                </div>
+                <div class="bg-dark-800 rounded-2xl border border-white/5 p-4 flex-1 flex flex-col items-center justify-center relative overflow-hidden">
+                    <div class="relative z-10 mb-2">
+                        <div class="w-24 h-24 rounded-full border-4 border-dark-700 flex items-center justify-center relative">
+                            <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none">
+                                <circle cx="48" cy="48" r="42" fill="none" stroke="currentColor" stroke-width="3" class="text-brand-500/20" />
+                                <circle id="timer-progress" cx="48" cy="48" r="42" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="263.89" stroke-dashoffset="0" stroke-linecap="round" class="text-brand-500 transition-all duration-1000" />
+                            </svg>
+                            <div class="text-center">
+                                <div id="timer-display" class="text-2xl font-bold text-white tracking-tight">25:00</div>
+                                <div id="timer-status" class="text-[9px] text-brand-400 font-medium uppercase tracking-widest">Focus</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 z-10">
+                        <button id="btn-timer-reset" class="w-9 h-9 rounded-full bg-dark-700 text-slate-400 hover:text-white hover:bg-dark-600 transition-all active:scale-90 flex items-center justify-center text-xs group" title="Reset">
+                            <i class="fa-solid fa-rotate-left transition-transform group-active:-rotate-180"></i>
+                        </button>
+                        <button id="btn-timer-toggle" class="w-12 h-12 rounded-full bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/40 transition-transform active:scale-95 flex items-center justify-center text-lg">
+                            <i id="icon-timer-toggle" class="fa-solid fa-play ml-1"></i>
+                        </button>
+                        <button id="btn-timer-mode" class="w-9 h-9 rounded-full bg-dark-700 text-slate-400 hover:text-white hover:bg-dark-600 transition-all active:scale-90 flex items-center justify-center text-xs" title="Switch Mode">
+                            <i class="fa-solid fa-mug-hot"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 2: News (60%) & Tasks (40%) -->
+        <div class="flex flex-col md:flex-row gap-6 mb-8">
+            
+            <!-- Latest News (60%) -->
+            <div class="md:w-3/5 h-[450px] flex flex-col">
+                <div class="bg-dark-800 rounded-2xl border border-white/5 p-6 h-full flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-regular fa-newspaper text-brand-500"></i> Latest News - Fox News
+                        </h3>
+                        <button id="btn-refresh-news" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-arrows-rotate"></i></button>
+                    </div>
+                    
+                    <div id="news-container" class="flex-1 overflow-y-auto space-y-4 pr-2">
+                        <!-- Default Static Content (Fallback) -->
+                        <a href="https://www.foxnews.com/us/texas-suspect-caught-daughter-rescued-father-traces-phone-location" target="_blank" class="block group">
+                            <div class="flex gap-4">
+                                <div class="w-24 h-16 bg-dark-700 rounded-lg overflow-hidden shrink-0 relative">
+                                    <img src="https://a57.foxnews.com/static.foxnews.com/foxnews.com/content/uploads/2025/12/931/523/texas-girl-found.jpg" onerror="this.src='https://placehold.co/100x60/1e293b/FFF?text=Fox+News'" alt="Texas News" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[10px] text-brand-500 bg-brand-500/10 px-1.5 py-0.5 rounded">US</span>
+                                        <span class="text-[10px] text-slate-500">Just now</span>
+                                    </div>
+                                    <h4 class="text-sm font-medium text-white line-clamp-2 group-hover:text-brand-400 transition-colors">Texas suspect caught, daughter rescued after father traces phone location</h4>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="https://www.foxnews.com/politics/trump-zelenskyy-push-ukraine-peace-framework-forward-territorial-rifts-remain" target="_blank" class="block group pt-4 border-t border-white/5">
+                            <div class="flex gap-4">
+                                <div class="w-24 h-16 bg-dark-700 rounded-lg overflow-hidden shrink-0 relative">
+                                    <img src="https://a57.foxnews.com/static.foxnews.com/foxnews.com/content/uploads/2025/12/931/523/trump-zelenskyy.jpg" onerror="this.src='https://placehold.co/100x60?text=Politics'" alt="Politics" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[10px] text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">Politics</span>
+                                        <span class="text-[10px] text-slate-500">1h ago</span>
+                                    </div>
+                                    <h4 class="text-sm font-medium text-white line-clamp-2 group-hover:text-brand-400 transition-colors">Trump, Zelenskyy push Ukraine peace framework forward as territorial rifts remain</h4>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="https://www.foxnews.com/world/violent-crime-rises-several-us-cities-even-national-rates-continue-fall-survey" target="_blank" class="block group pt-4 border-t border-white/5">
+                            <div class="flex gap-4">
+                                <div class="w-24 h-16 bg-dark-700 rounded-lg overflow-hidden shrink-0 relative">
+                                    <img src="https://a57.foxnews.com/static.foxnews.com/foxnews.com/content/uploads/2025/12/931/523/crime-scene-tape.jpg" onerror="this.src='https://placehold.co/100x60?text=World'" alt="World" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[10px] text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded">World</span>
+                                        <span class="text-[10px] text-slate-500">2h ago</span>
+                                    </div>
+                                    <h4 class="text-sm font-medium text-white line-clamp-2 group-hover:text-brand-400 transition-colors">Violent crime rises in several US cities even as national rates continue to fall</h4>
+                                </div>
+                            </div>
+                        </a>
+                        
+                         <a href="https://www.foxnews.com/entertainment/fans-rally-behind-nina-dobrevs-bikini-moment-after-breakup-shaun-white" target="_blank" class="block group pt-4 border-t border-white/5">
+                            <div class="flex gap-4">
+                                <div class="w-24 h-16 bg-dark-700 rounded-lg overflow-hidden shrink-0 relative">
+                                    <img src="https://a57.foxnews.com/static.foxnews.com/foxnews.com/content/uploads/2025/12/931/523/nina-dobrev.jpg" onerror="this.src='https://placehold.co/100x60?text=Entertainment'" alt="Entertainment" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[10px] text-pink-500 bg-pink-500/10 px-1.5 py-0.5 rounded">Entertainment</span>
+                                        <span class="text-[10px] text-slate-500">4h ago</span>
+                                    </div>
+                                    <h4 class="text-sm font-medium text-white line-clamp-2 group-hover:text-brand-400 transition-colors">Fans rally behind Nina Dobrev's bikini moment after breakup with Shaun White</h4>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks & Notes (40%) -->
+            <div class="md:w-2/5 h-[450px] flex flex-col">
+                <div class="bg-dark-800 rounded-2xl border border-white/5 p-0 flex-1 flex flex-col relative overflow-hidden group shadow-lg">
+                    <!-- Tabs Header -->
+                    <div class="flex border-b border-white/5 bg-dark-900/50">
+                        <button id="tab-btn-tasks" class="flex-1 py-3 text-sm font-bold text-brand-500 border-b-2 border-brand-500 transition-colors hover:bg-white/5 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-list-check"></i> Tasks
+                        </button>
+                        <button id="tab-btn-notes" class="flex-1 py-3 text-sm font-bold text-slate-500 border-b-2 border-transparent transition-colors hover:bg-white/5 hover:text-slate-300 flex items-center justify-center gap-2">
+                            <i class="fa-regular fa-pen-to-square"></i> Notes
+                        </button>
+                    </div>
+
+                    <!-- Tab Content: Tasks -->
+                    <div id="tab-content-tasks" class="flex-1 flex flex-col p-5 tab-content">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">To-Do List</h3>
+                            <button id="btn-add-task" class="text-[10px] bg-brand-600 hover:bg-brand-500 text-white px-2.5 py-1 rounded-lg transition-colors">
+                                <i class="fa-solid fa-plus mr-1"></i> Add
+                            </button>
+                        </div>
+                        <div id="tasks-empty" class="flex-1 flex flex-col items-center justify-center text-center opacity-80 hover:opacity-100 transition-opacity">
+                            <div class="w-10 h-10 bg-dark-700 rounded-full flex items-center justify-center text-xl text-slate-500 mb-2">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                            </div>
+                            <p class="text-white font-medium text-xs mb-0.5">No tasks yet!</p>
+                            <p class="text-[10px] text-slate-500">Stay organized.</p>
+                        </div>
+                        <div id="tasks-input" class="hidden mt-auto pt-3 border-t border-white/5">
+                            <div class="flex flex-col gap-2">
+                                <div class="flex gap-2">
+                                    <input id="tasks-input-field" type="text" placeholder="Add task..." class="flex-1 bg-dark-900 border border-dark-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-slate-500">
+                                    <button id="btn-submit-task" class="bg-brand-600 text-white px-3 rounded-lg hover:bg-brand-500 shadow-lg shadow-brand-500/20">
+                                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="chk-reminder" class="w-3 h-3 rounded bg-dark-700 border-dark-600 accent-brand-500 cursor-pointer">
+                                    <label for="chk-reminder" class="text-[10px] text-slate-400 cursor-pointer select-none hover:text-white">Reminder</label>
+                                </div>
+                                <div id="container-reminder-date" class="hidden relative">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-slate-400">
+                                        <i class="fa-regular fa-clock text-[10px]"></i>
+                                    </div>
+                                    <input id="tasks-date-field" type="datetime-local" class="w-full bg-dark-900 border border-dark-600 rounded-lg pl-7 pr-2 py-1.5 text-[10px] text-white focus:outline-none focus:border-brand-500 [color-scheme:dark]">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content: Notes -->
+                    <div id="tab-content-notes" class="flex-1 flex flex-col p-5 hidden tab-content">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Notes</h3>
+                             <button id="btn-add-note" class="text-[10px] bg-dark-700 hover:bg-dark-600 text-white px-2.5 py-1 rounded-lg transition-colors border border-white/10">
+                                <i class="fa-solid fa-plus mr-1"></i> New
+                            </button>
+                        </div>
+                        <div id="notes-empty" class="flex-1 flex flex-col items-center justify-center text-center opacity-80 hover:opacity-100 transition-opacity">
+                            <div class="w-10 h-10 bg-dark-700 rounded-full flex items-center justify-center text-xl text-slate-500 mb-2">
+                                <i class="fa-regular fa-note-sticky"></i>
+                            </div>
+                            <p class="text-white font-medium text-xs mb-0.5">No notes yet!</p>
+                        </div>
+                        <div id="notes-input" class="hidden absolute inset-0 top-[50px] bg-dark-800 z-10 p-5">
+                            <textarea class="w-full h-full bg-dark-900/50 rounded-xl p-3 text-white resize-none border border-white/5 focus:outline-none focus:border-brand-500 placeholder-slate-500 text-xs" placeholder="Type notes..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Floating Nav -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
+        <div class="glass-effect px-6 py-3 rounded-full flex items-center gap-8 shadow-2xl border border-white/10">
+            <button id="nav-home" class="flex flex-col items-center gap-1 text-brand-500 transition-transform hover:scale-110">
+                <i class="fa-solid fa-house text-xl"></i>
+            </button>
+            <button id="nav-calendar" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-transform hover:scale-110">
+                <i class="fa-regular fa-calendar text-xl"></i>
+            </button>
+            <button id="nav-fab" class="w-14 h-14 -mt-10 bg-brand-600 hover:bg-brand-500 rounded-full shadow-lg shadow-brand-500/50 text-white flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95 group border-4 border-dark-900">
+                <i class="fa-solid fa-plus group-hover:rotate-90 transition-transform duration-300"></i>
+            </button>
+            <button id="nav-tasks" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-transform hover:scale-110">
+                <i class="fa-solid fa-list-check text-xl"></i>
+            </button>
+            <button id="nav-profile" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-transform hover:scale-110">
+                <i class="fa-regular fa-user text-xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('en-US', timeOptions);
+            const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').innerText = now.toLocaleDateString('en-US', dateOptions);
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let isDND = false;
+            let isDark = true;
+
+            // --- NOTIFICATION SYSTEM ---
+            const notifBadge = document.getElementById('notif-badge');
+            const notifList = document.getElementById('notif-list');
+            function showNotification(title, message, type = 'system') {
+                if (isDND && type !== 'reminder') return;
+                notifBadge.classList.remove('hidden');
+                if(notifList.innerText === 'No new notifications') notifList.innerHTML = '';
+                const notifItem = document.createElement('div');
+                notifItem.className = 'p-3 border-b border-dark-700 hover:bg-dark-700/50 cursor-pointer flex gap-3 items-start text-left fade-in';
+                let dotColor = type === 'reminder' ? 'bg-orange-500' : 'bg-blue-500';
+                notifItem.innerHTML = `<div class="w-2 h-2 mt-2 rounded-full ${dotColor} shrink-0"></div><div><p class="text-sm text-white font-medium">${title}</p><p class="text-xs text-slate-400">${message}</p></div>`;
+                notifList.prepend(notifItem);
+            }
+
+            // --- AUTH LOGIC ---
+            const btnSyncGoogle = document.getElementById('btn-sync-google');
+            const btnConnectCalendar = document.getElementById('btn-connect-calendar');
+            const calendarLoginState = document.getElementById('calendar-login-state');
+            const calendarContent = document.getElementById('calendar-content');
+            const headerProfile = document.getElementById('header-profile');
+            let isLoggedIn = false;
+            function simulateLogin() {
+                if(isLoggedIn) return;
+                btnSyncGoogle.innerHTML = '<div class="spinner"></div>';
+                setTimeout(() => {
+                    isLoggedIn = true;
+                    calendarLoginState.classList.add('hidden');
+                    calendarContent.classList.remove('filter', 'blur-sm');
+                    headerProfile.innerHTML = '<img src="https://i.pravatar.cc/100?img=12" class="w-full h-full object-cover">';
+                    headerProfile.classList.remove('bg-dark-800', 'text-slate-400');
+                    headerProfile.classList.add('border-brand-500');
+                    btnSyncGoogle.innerHTML = `<div class="w-10 h-10 rounded-full bg-brand-500/10 text-brand-500 flex items-center justify-center text-lg shadow-sm"><i class="fa-solid fa-calendar-check"></i></div><span class="text-xs text-brand-500 font-medium truncate w-full text-center px-1">Connected</span>`;
+                    showNotification('Calendar Synced', 'Your Google Calendar is now connected.', 'system');
+                }, 1200); 
+            }
+            btnSyncGoogle.addEventListener('click', simulateLogin);
+            btnConnectCalendar.addEventListener('click', simulateLogin);
+
+            // --- TAB LOGIC (TASKS / NOTES) ---
+            const tabBtnTasks = document.getElementById('tab-btn-tasks');
+            const tabBtnNotes = document.getElementById('tab-btn-notes');
+            const tabContentTasks = document.getElementById('tab-content-tasks');
+            const tabContentNotes = document.getElementById('tab-content-notes');
+
+            function switchTab(tab) {
+                if(tab === 'tasks') {
+                    tabContentTasks.classList.remove('hidden');
+                    tabContentNotes.classList.add('hidden');
+                    
+                    tabBtnTasks.classList.add('text-brand-500', 'border-brand-500');
+                    tabBtnTasks.classList.remove('text-slate-500', 'border-transparent');
+                    
+                    tabBtnNotes.classList.remove('text-brand-500', 'border-brand-500');
+                    tabBtnNotes.classList.add('text-slate-500', 'border-transparent');
+                } else {
+                    tabContentNotes.classList.remove('hidden');
+                    tabContentTasks.classList.add('hidden');
+                    
+                    tabBtnNotes.classList.add('text-brand-500', 'border-brand-500');
+                    tabBtnNotes.classList.remove('text-slate-500', 'border-transparent');
+                    
+                    tabBtnTasks.classList.remove('text-brand-500', 'border-brand-500');
+                    tabBtnTasks.classList.add('text-slate-500', 'border-transparent');
+                }
+            }
+            tabBtnTasks.addEventListener('click', () => switchTab('tasks'));
+            tabBtnNotes.addEventListener('click', () => switchTab('notes'));
+
+
+            // --- FOCUS TIMER LOGIC (UPDATED) ---
+            let timerInterval;
+            let timerRunning = false;
+            let timerMode = 'focus'; // 'focus' or 'break'
+            let timeLeft = 25 * 60; // 25 minutes
+            
+            const timerDisplay = document.getElementById('timer-display');
+            const timerProgress = document.getElementById('timer-progress');
+            const btnTimerToggle = document.getElementById('btn-timer-toggle');
+            const iconTimerToggle = document.getElementById('icon-timer-toggle');
+            const btnTimerReset = document.getElementById('btn-timer-reset');
+            const btnTimerMode = document.getElementById('btn-timer-mode');
+            const timerStatus = document.getElementById('timer-status');
+            
+            const FULL_DASH_ARRAY = 263.89; // 2 * pi * r (r=42)
+
+            function updateTimerDisplay() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Update Circle
+                const totalTime = timerMode === 'focus' ? 25 * 60 : 5 * 60;
+                const fraction = timeLeft / totalTime;
+                const offset = FULL_DASH_ARRAY - (fraction * FULL_DASH_ARRAY);
+                timerProgress.style.strokeDashoffset = offset;
+            }
+
+            function toggleTimer() {
+                if (timerRunning) {
+                    clearInterval(timerInterval);
+                    timerRunning = false;
+                    iconTimerToggle.classList.remove('fa-pause');
+                    iconTimerToggle.classList.add('fa-play');
+                    iconTimerToggle.classList.add('ml-1'); // Fix centering
+                } else {
+                    timerRunning = true;
+                    iconTimerToggle.classList.remove('fa-play');
+                    iconTimerToggle.classList.remove('ml-1');
+                    iconTimerToggle.classList.add('fa-pause');
+                    timerInterval = setInterval(() => {
+                        if (timeLeft > 0) {
+                            timeLeft--;
+                            updateTimerDisplay();
+                        } else {
+                            clearInterval(timerInterval);
+                            timerRunning = false;
+                            iconTimerToggle.classList.remove('fa-pause');
+                            iconTimerToggle.classList.add('fa-play');
+                            iconTimerToggle.classList.add('ml-1');
+                            showNotification('Timer Finished', `${timerMode === 'focus' ? 'Focus session' : 'Break'} complete!`, 'reminder');
+                        }
+                    }, 1000);
+                }
+            }
+
+            function resetTimer() {
+                // Stop timer
+                clearInterval(timerInterval);
+                timerRunning = false;
+                
+                // Reset Icon
+                iconTimerToggle.classList.remove('fa-pause');
+                iconTimerToggle.classList.add('fa-play');
+                iconTimerToggle.classList.add('ml-1');
+                
+                // Reset Time
+                timeLeft = timerMode === 'focus' ? 25 * 60 : 5 * 60;
+                updateTimerDisplay();
+            }
+
+            function switchTimerMode() {
+                timerMode = timerMode === 'focus' ? 'break' : 'focus';
+                timerStatus.innerText = timerMode === 'focus' ? 'Focus' : 'Break';
+                timerStatus.className = timerMode === 'focus' ? 'text-[9px] text-brand-400 font-medium uppercase tracking-widest' : 'text-[9px] text-emerald-400 font-medium uppercase tracking-widest';
+                
+                if (timerMode === 'break') {
+                    timerProgress.classList.remove('text-brand-500');
+                    timerProgress.classList.add('text-emerald-500');
+                } else {
+                    timerProgress.classList.remove('text-emerald-500');
+                    timerProgress.classList.add('text-brand-500');
+                }
+                resetTimer();
+            }
+
+            btnTimerToggle.addEventListener('click', toggleTimer);
+            btnTimerReset.addEventListener('click', resetTimer);
+            btnTimerMode.addEventListener('click', switchTimerMode);
+            updateTimerDisplay(); // Init
+
+
+            // --- NEWS FETCH LOGIC ---
+            const newsContainer = document.getElementById('news-container');
+            const btnRefreshNews = document.getElementById('btn-refresh-news');
+
+            async function fetchNews() {
+                btnRefreshNews.classList.add('animate-spin');
+                try {
+                    // Using rss2json for easier parsing and CORS handling
+                    const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://feeds.foxnews.com/foxnews/latest');
+                    const data = await response.json();
+                    
+                    if (data.status === 'ok' && data.items.length > 0) {
+                        newsContainer.innerHTML = ''; 
+                        
+                        // Take first 5 items
+                        for(let i=0; i<5; i++) {
+                            const item = data.items[i];
+                            const title = item.title;
+                            const link = item.link;
+                            const pubDate = new Date(item.pubDate);
+                            const timeAgo = Math.floor((new Date() - pubDate) / (1000 * 60 * 60)) + 'h ago';
+                            
+                            // rss2json tries to extract images, check 'thumbnail' or 'enclosure'
+                            // Fox news feed usually puts images in enclosure or media:content
+                            let imgUrl = item.thumbnail || item.enclosure?.link;
+                            
+                            // Fallback category
+                            let category = 'News';
+                            if (item.categories && item.categories.length > 0) {
+                                category = item.categories[0];
+                            }
+                            
+                            // Generic placeholder if no image found
+                            if (!imgUrl) {
+                                imgUrl = `https://placehold.co/100x60/1e293b/FFF?text=${category.substring(0,3)}`;
+                            }
+
+                            const newsHTML = `
+                            <a href="${link}" target="_blank" class="block group ${i > 0 ? 'pt-4 border-t border-white/5' : ''}">
+                                <div class="flex gap-4">
+                                    <div class="w-24 h-16 bg-dark-700 rounded-lg overflow-hidden shrink-0 relative">
+                                        <img src="${imgUrl}" onerror="this.src='https://placehold.co/100x60/1e293b/FFF?text=News'" alt="${category}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-[10px] text-brand-500 bg-brand-500/10 px-1.5 py-0.5 rounded truncate max-w-[80px]">${category}</span>
+                                            <span class="text-[10px] text-slate-500">${timeAgo}</span>
+                                        </div>
+                                        <h4 class="text-sm font-medium text-white line-clamp-2 group-hover:text-brand-400 transition-colors">${title}</h4>
+                                    </div>
+                                </div>
+                            </a>`;
+                            newsContainer.insertAdjacentHTML('beforeend', newsHTML);
+                        }
+                    } else {
+                        throw new Error('No items found');
+                    }
+                } catch (error) {
+                    console.log('News fetch failed, keeping static data.', error);
+                    // Optional: Show a toast? No, keep it clean. Static data acts as fallback.
+                } finally {
+                    btnRefreshNews.classList.remove('animate-spin');
+                }
+            }
+
+            btnRefreshNews.addEventListener('click', fetchNews);
+
+
+            // --- TASK SUBMISSION ---
+            const btnSubmitTask = document.getElementById('btn-submit-task');
+            const tasksInput = document.getElementById('tasks-input-field');
+            const chkReminder = document.getElementById('chk-reminder');
+            btnSubmitTask.addEventListener('click', () => {
+                const taskText = tasksInput.value;
+                if(!taskText) return;
+                tasksInput.value = '';
+                document.getElementById('tasks-empty').classList.add('hidden');
+                if(chkReminder.checked) {
+                    setTimeout(() => showNotification('Reminder', `Time for: ${taskText}`, 'reminder'), 3000);
+                    chkReminder.checked = false;
+                    document.getElementById('container-reminder-date').classList.add('hidden');
+                }
+            });
+
+            // --- OTHER LISTENERS ---
+            const btnNotifications = document.getElementById('btn-notifications');
+            const panelNotifications = document.getElementById('panel-notifications');
+            btnNotifications.addEventListener('click', (e) => { e.stopPropagation(); panelNotifications.classList.toggle('hidden'); if(!panelNotifications.classList.contains('hidden')) notifBadge.classList.add('hidden'); });
+            document.addEventListener('click', (e) => { if (!btnNotifications.contains(e.target) && !panelNotifications.contains(e.target)) panelNotifications.classList.add('hidden'); });
+
+            const btnSettings = document.getElementById('btn-settings');
+            const modalSettings = document.getElementById('modal-settings');
+            const btnCloseSettings = document.getElementById('btn-close-settings');
+            btnSettings.addEventListener('click', () => modalSettings.classList.remove('hidden'));
+            btnCloseSettings.addEventListener('click', () => modalSettings.classList.add('hidden'));
+            modalSettings.addEventListener('click', (e) => { if(e.target === modalSettings) modalSettings.classList.add('hidden'); });
+
+            const btnDarkMode = document.getElementById('btn-dark-mode');
+            const circleDarkMode = document.getElementById('circle-dark-mode');
+            btnDarkMode.addEventListener('click', () => {
+                isDark = !isDark;
+                if(isDark) { document.body.classList.remove('light-mode'); btnDarkMode.classList.replace('bg-slate-500', 'bg-brand-500'); circleDarkMode.classList.add('translate-x-5'); } 
+                else { document.body.classList.add('light-mode'); btnDarkMode.classList.replace('bg-brand-500', 'bg-slate-500'); circleDarkMode.classList.remove('translate-x-5'); }
+            });
+
+            const btnDnd = document.getElementById('btn-dnd');
+            const circleDnd = document.getElementById('circle-dnd');
+            const iconDnd = document.getElementById('icon-dnd');
+            btnDnd.addEventListener('click', () => {
+                isDND = !isDND;
+                if(isDND) { btnDnd.classList.replace('bg-dark-700', 'bg-red-500'); circleDnd.classList.add('translate-x-5', 'bg-white'); circleDnd.classList.remove('bg-slate-400'); iconDnd.classList.replace('text-slate-400', 'text-red-500'); }
+                else { btnDnd.classList.replace('bg-red-500', 'bg-dark-700'); circleDnd.classList.remove('translate-x-5', 'bg-white'); circleDnd.classList.add('bg-slate-400'); iconDnd.classList.replace('text-red-500', 'text-slate-400'); }
+            });
+
+            const btnTheme = document.getElementById('btn-theme');
+            const themes = [ { c500: '99 102 241', c600: '79 70 229' }, { c500: '16 185 129', c600: '5 150 105' }, { c500: '244 63 94', c600: '225 29 72' }, { c500: '245 158 11', c600: '217 119 6' }, { c500: '14 165 233', c600: '2 132 199' } ];
+            let currentThemeIndex = 0;
+            btnTheme.addEventListener('click', () => {
+                currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+                const newTheme = themes[currentThemeIndex];
+                document.documentElement.style.setProperty('--color-brand-500', newTheme.c500);
+                document.documentElement.style.setProperty('--color-brand-600', newTheme.c600);
+            });
+
+            const navHome = document.getElementById('nav-home');
+            const navCalendar = document.getElementById('nav-calendar');
+            const navTasks = document.getElementById('nav-tasks');
+            const navProfile = document.getElementById('nav-profile');
+            const navFab = document.getElementById('nav-fab');
+            function setActiveNav(activeBtn) { [navHome, navCalendar, navTasks, navProfile].forEach(btn => { btn.classList.remove('text-brand-500'); btn.classList.add('text-slate-400'); }); activeBtn.classList.remove('text-slate-400'); activeBtn.classList.add('text-brand-500'); }
+            navHome.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); setActiveNav(navHome); });
+            navCalendar.addEventListener('click', () => { document.getElementById('section-calendar').scrollIntoView({ behavior: 'smooth', block: 'center' }); setActiveNav(navCalendar); });
+            navTasks.addEventListener('click', () => { document.getElementById('section-tasks').scrollIntoView({ behavior: 'smooth', block: 'start' }); setActiveNav(navTasks); });
+            navProfile.addEventListener('click', () => { document.getElementById('section-activity').scrollIntoView({ behavior: 'smooth', block: 'center' }); setActiveNav(navProfile); });
+            navFab.addEventListener('click', () => { document.getElementById('section-tasks').scrollIntoView({ behavior: 'smooth', block: 'start' }); setActiveNav(navTasks); setTimeout(() => { document.getElementById('btn-add-task').click(); document.getElementById('tasks-input-field')?.focus(); }, 600); });
+
+            const chkReminder_toggle = document.getElementById('chk-reminder');
+            const containerReminderDate = document.getElementById('container-reminder-date');
+            if(chkReminder_toggle && containerReminderDate) {
+                chkReminder_toggle.addEventListener('change', (e) => {
+                    if(e.target.checked) containerReminderDate.classList.remove('hidden');
+                    else containerReminderDate.classList.add('hidden');
+                });
+            }
+            document.getElementById('btn-add-task').addEventListener('click', () => { document.getElementById('tasks-empty').classList.add('hidden'); document.getElementById('tasks-input').classList.remove('hidden'); document.querySelector('#tasks-input input').focus(); });
+            document.getElementById('btn-add-note').addEventListener('click', () => { document.getElementById('notes-empty').classList.add('hidden'); document.getElementById('notes-input').classList.remove('hidden'); document.querySelector('#notes-input textarea').focus(); });
+            document.querySelectorAll('a[href="#"]').forEach(item => item.addEventListener('click', (e) => e.preventDefault()));
+        });
+    </script>
+</body>
+</html>
